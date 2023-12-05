@@ -90,7 +90,7 @@ class Day03
     return acc if pos >= @rows.length - 1 # Ending one Row early.
 
     valid = valid_numbers(close_numbers(pos), @rows[pos].symbol_indexes(/[^0-9\.]/))
-    acc  += valid.inject(0) {|sum, n| sum += n.number }
+    acc  += valid.flatten.inject(:+) unless valid.empty?
 
     part_1(acc, pos+=1)
   end
@@ -98,8 +98,8 @@ class Day03
   def part_2(acc=0, pos=1)
     return acc if pos >= @rows.length - 1 # Ending one Row early.
 
-    valid = valid_numbers(close_numbers(pos), @rows[pos].symbol_indexes(/[\*]/))
-    acc  += valid.map {|n| n.number}.inject(:*) unless valid.length < 2
+    valid = valid_numbers(close_numbers(pos), @rows[pos].symbol_indexes(/[\*]/)).select {|v| v.length > 1}
+    acc  += valid.map {|pair| pair.inject(:*)}.flatten.inject(:+) unless valid.empty?
 
     part_2(acc, pos+=1)
   end
@@ -107,7 +107,7 @@ class Day03
   private
 
   def valid_numbers(numbers, indexes)
-    numbers.select {|n| indexes.any? {|i| i.between?(n.loi, n.roi)}}
+    indexes.map {|i| numbers.select {|n| i.between?(n.loi, n.roi)}.map(&:number)}
   end
 
   def close_numbers(pos)
