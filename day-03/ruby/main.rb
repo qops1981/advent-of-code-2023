@@ -10,17 +10,17 @@ end
 
 class SchematicNumber
 
-  attr_reader :number, :starting_index, :ending_index
+  attr_reader :number, :s_index, :e_index
 
   def initialize(number, starting_index, ending_index)
-    @number = number
-    @starting_index = starting_index
-    @ending_index   = ending_index
+    @number  = number
+    @s_index = starting_index
+    @e_index = ending_index
   end
 
-  def left_border_index() @starting_index - 1 end
+  def loi() @s_index - 1 end # Left Outer Index
 
-  def right_border_index() @ending_index + 1 end
+  def roi() @e_index + 1 end # Right Outer Index
 
 end
 
@@ -33,6 +33,14 @@ class SchematicRow
   end
 
   def symbols(range) @row[range].scan(/[^0-9\.]/) end
+
+  def symbol_indexes(symbol, indexes=[], pos=0)
+    return indexes if pos >= @row.length
+
+    indexes << pos if @row[pos] =~ symbol
+
+    symbol_indexes(symbol, indexes, pos+=1)
+  end
 
   def gear_indexes(indexes=[], pos=0)
     return indexes if pos > @row.length - 1
@@ -70,44 +78,48 @@ class SchematicRow
 
 end
 
-SCHEMATIC_ROWS = input.map {|i| SchematicRow.new(i)}
+class Day03
 
-def sum_part_numbers(rows, acc=0, pos=0)
-  return acc if pos > rows.length - 1
+  def initialize(list)
+    extra_row = [SchematicRow.new("." * list[0].length)]
 
-  previous_row  = pos == 0 ? SchematicRow.new("." * rows[pos].row.length) : rows[pos-1]
-  current_row   = rows[pos]
-  following_row = pos == rows.length - 1 ? SchematicRow.new("." * rows[pos].row.length) : rows[pos+1]
-
-  current_row.numbers.each do |n|
-    range   = (n.left_border_index..n.right_border_index)
-
-    symbols = previous_row.symbols(range) + current_row.symbols(range) + following_row.symbols(range)
-
-    acc += n.number unless symbols.empty?
+    @rows = extra_row + list.map {|i| SchematicRow.new(i)} + extra_row
   end
 
-  sum_part_numbers(rows, acc, pos+=1)
-end
+  def part_1(acc=0, pos=1)
+    return acc if pos >= @rows.length - 1 # Ending one Row early.
 
-printf("%s: Day 03, Part 01, Value (%d)\n", ARGV[0].capitalize, sum_part_numbers(SCHEMATIC_ROWS.dup))
+    valid = valid_numbers(close_numbers(pos), @rows[pos].symbol_indexes(/[^0-9\.]/))
+    acc  += valid.inject(0) {|sum, n| sum += n.number }
 
-def sum_gear_ratios(rows, acc=0, pos=0)
-  return acc if pos > rows.length - 1
-
-  previous_row  = pos == 0 ? SchematicRow.new("." * rows[pos].row.length) : rows[pos-1]
-  current_row   = rows[pos]
-  following_row = pos == rows.length - 1 ? SchematicRow.new("." * rows[pos].row.length) : rows[pos+1]
-
-
-  current_row.gear_indexes.each do |g|
-    parts = previous_row.numbers.select  {|n| g.between?(n.left_border_index, n.right_border_index)} +
-            current_row.numbers.select   {|n| g.between?(n.left_border_index, n.right_border_index)} +
-            following_row.numbers.select {|n| g.between?(n.left_border_index, n.right_border_index)}
-    acc += parts.map {|pts| pts.number}.inject(:*) unless parts.length < 2
+    part_1(acc, pos+=1)
   end
 
-  sum_gear_ratios(rows, acc, pos+=1)
+  def part_2(acc=0, pos=1)
+    return acc if pos >= @rows.length - 1 # Ending one Row early.
+
+    valid = valid_numbers(close_numbers(pos), @rows[pos].symbol_indexes(/[\*]/))
+    acc  += valid.map {|n| n.number}.inject(:*) unless valid.length < 2
+
+    part_2(acc, pos+=1)
+  end
+
+  private
+
+  def valid_numbers(numbers, indexes)
+    numbers.select {|n| indexes.any? {|i| i.between?(n.loi, n.roi)}}
+  end
+
+  def close_numbers(pos)
+    @rows[pos-1].numbers +
+    @rows[pos  ].numbers +
+    @rows[pos+1].numbers
+  end
+
 end
 
-printf("%s: Day 03, Part 02, Value (%d)\n", ARGV[0].capitalize, sum_gear_ratios(SCHEMATIC_ROWS.dup))
+puzzel = Day03.new(input)
+
+printf("%s: Day 03, Part 01, Value (%d)\n", ARGV[0].capitalize, puzzel.part_1)
+
+printf("%s: Day 03, Part 02, Value (%d)\n", ARGV[0].capitalize, puzzel.part_2)
