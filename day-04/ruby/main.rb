@@ -31,11 +31,6 @@ class Day04
 
   def part_1() cards.inject(0) {|sum, card| sum += card.score} end
 
-  def part_2()
-    tally_scratch_cards
-    @state.inject(:+)
-  end
-
   def part_2(pos=0)
     return @state.inject(:+) if pos >= cards.length
 
