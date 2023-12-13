@@ -111,7 +111,7 @@ end
 
 puzzel = Day05.new(input.dup)
 
-printf("%s: Day 04, Part 01, Value (%d)\n", ARGV[0].capitalize, puzzel.part_1)
+printf("%s: Day 05, Part 01, Value (%d)\n", ARGV[0].capitalize, puzzel.part_1)
 
-printf("%s: Day 04, Part 02, Value (%d)\n", ARGV[0].capitalize, puzzel.part_2)
+printf("%s: Day 05, Part 02, Value (%d)\n", ARGV[0].capitalize, puzzel.part_2)
 
