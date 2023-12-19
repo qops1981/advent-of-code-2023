@@ -1,10 +1,5 @@
 #! /usr/bin/env ruby
 
-RubyVM::InstructionSequence.compile_option = {
-  :tailcall_optimization => true,
-  :trace_instruction     => false
-}
-
 input = File.read("../#{ARGV[0]}").split("\n")
 
 class DesertMap
